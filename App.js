@@ -8,10 +8,15 @@ import Cabecalho from './componentesCriados/Cabecalho' //por default ele pega o 
 
 
 export default function App() {
-  //status de acesso à camera
+  /*
+    status de acesso à camera, utilizandp o hook useState,
+    flag para dizermos se a camera está ou nao permitida a
+    nossa aplicacao. 
+    https://pt-br.reactjs.org/docs/hooks-intro.html
+  */
   const [temPermissao, setTemPermissao] = useState(null)
 
-  //referencia da camera
+  //referencia da camera, com o hook useRef
   const cameraReferencia = useRef(null)
 
   //icones padroes que serao exibidos, md material design
@@ -41,7 +46,14 @@ export default function App() {
     }
   })
 
-  //useEffect é executado no carregamento --onload 
+  /*
+    useEffect é um hook react e é executado no carregamento
+    como se fosse o --onload do html, e recebe dois argumentos,
+    o segundo argumento é opcional, pois podemos passar alguma
+    variavel por exemplo para ser 'observado' e em determinada
+    situação ser executada novamente primeiro argumento que é 
+    uma funcao
+  */
   useEffect(() => {
     (
       async () => {
@@ -53,16 +65,16 @@ export default function App() {
           setTemPermissao(status === 'granted')
         }
       }
-    )() //promisse
-  }, []) /** quando o array "segundo argumento" está vazio, o useEffect é executado apenas uma vez */
+    )() //promisse, pesquisar
+  }, []) /** quando o array (segundo argumento) está vazio, o useEffect é executado apenas uma vez */
 
   if (temPermissao === false) {
-    return <Text> Acesso negado à câmera ou seu equipamento não possui uma. </Text>
+    return <Text>Acesso negado à câmera ou seu equipamento não possui uma.</Text>
   }
 
   async function tirarFoto() {
     if (cameraReferencia) {
-      Camera
+      {/*Camera, comentanto esta linha pois acho que coloquei Camera aqui sem querer*/}
       const options = {
         quality: 1,
         skipProcessing: false,
