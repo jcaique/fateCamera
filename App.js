@@ -1,5 +1,9 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { Text, Image, Modal, Platform, SafeAreaView, TouchableOpacity, View, StyleSheet } from 'react-native'
+import {
+  Text, Image, Modal, Platform, SafeAreaView,
+  TouchableOpacity, View, StyleSheet, ToastAndroid, Alert
+} from 'react-native'
+
 import { Camera } from 'expo-camera'
 import { Ionicons } from '@expo/vector-icons'
 import * as Permissions from 'expo-permissions'
@@ -10,6 +14,9 @@ import Cabecalho from './componentesCriados/Cabecalho' //por default ele pega o 
 export default function App() {
   //status de acesso à camera
   const [temPermissao, setTemPermissao] = useState(null)
+
+  //status permissao a galeria
+  const [temPermissaoGaleria, setTemPermissaoGaleria] = useState(null)
 
   //referencia da camera
   const cameraReferencia = useRef(null)
@@ -53,7 +60,16 @@ export default function App() {
           setTemPermissao(status === 'granted')
         }
       }
-    )() //promisse
+    )(); //promisse
+
+    (
+      async () => {
+        //solicita permissao a galeria
+        const { status } = await Permissions.askAsync(Permissions.MEDIA_LIBRARY)
+        setTemPermissaoGaleria(status === 'granted')
+      }
+    )();
+
   }, []) /** quando o array "segundo argumento" está vazio, o useEffect é executado apenas uma vez */
 
   if (temPermissao === false) {
@@ -71,6 +87,33 @@ export default function App() {
       const foto = await cameraReferencia.current.takePictureAsync(options)
       setFotoCapturada(foto.uri) //takePictureAsync retorna o uri da foto, aqui 
       setExibeModal(true)
+
+      await obterResolucoes()
+
+      let mensagem = 'Foto Capturada com sucesso!'
+      iconePadrao === 'md'
+        ? ToastAndroid.showWithGravity(mensagem, ToastAndroid.SHORT, ToastAndroid.CENTER)
+        : Alert.alert('Imagem capturada', mensagem)
+
+    }
+  }
+
+  async function salvarFoto() {
+    if (temPermissaoGaleria) {
+      setExibeModal(false)
+      const fotoASerSalva = await MediaLibrary.createAssetAsync(fotoCapturada)
+      await MediaLibrary.createAlbumAsync('FateCam', fotoASerSalva, false)
+    } else {
+      Alert.alert('Nao foi possivel', 'Infelizmente o app nao tem permissao')
+    }
+  }
+
+  async function obterResolucoes() {
+    let resolucoes = await cameraReferencia.current.getAvailablePictureSizesAsync('16:9')
+    console.log(`Resoluções suportadas:   ${JSON.stringify(resolucoes)}`)
+    if (resolucoes && resolucoes.length > 0) {
+      console.log(`Maior qualidade:  ${resolucoes[resolucoes.length - 1]}`)
+      console.log(`Menor qualidade:  ${resolucoes[0]}`)
     }
   }
 
@@ -117,11 +160,21 @@ export default function App() {
       {/*monstrando a foto */}
       <Modal animationType='slide' transparent={true} visible={exibeModal}>
         <View style={estilos.modalView}>
-
           <Image source={{ uri: fotoCapturada }} style={{ width: '90%', height: '50%' }} />
 
+          <View style={{ flexDirection: 'row' }}>
+            <TouchableOpacity style={{ margin: 2 }} onPress={salvarFoto}>
+              <Ionicons name={`${iconePadrao}-cloud-circle`} size={40} color='#121212' />
+            </TouchableOpacity>
+          </View>
+
           {/*botao para fechar o modal via documentação*/}
-          <TouchableOpacity style={[estilos.botaoFecharModal]} onPress={() => { setExibeModal(false) }}>
+          <TouchableOpacity
+            style={[estilos.botaoFecharModal]}
+            onPress={() => { setExibeModal(false) }}
+            accessible={true}
+            accessibilityLabel='Fechar'
+            accessibilityHint='Fecha a janela atual'>
             <Text>Fechar</Text>
             <Ionicons name={`${iconePadrao}-close`} size={20} color='rgb(999,0,0)' />
           </TouchableOpacity>
@@ -171,7 +224,7 @@ const estilos = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     fontSize: 20,
-    bottom: '-50%',
+    bottom: '-40%',
     backgroundColor: '#e2a1d5d2'
   }
 })
