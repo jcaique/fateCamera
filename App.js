@@ -82,7 +82,7 @@ export default function App() {
       const options = {
         quality: 1,
         skipProcessing: false,
-        ratio: '16:9',
+        ratio: "16:9"
       }
       const foto = await cameraReferencia.current.takePictureAsync(options)
       setFotoCapturada(foto.uri) //takePictureAsync retorna o uri da foto, aqui 
@@ -127,6 +127,7 @@ export default function App() {
         type={tipoCamera} //iniciando a camera com a camera traseira
         flashMode={tipoFlash}
         ref={cameraReferencia}
+        ratio={'16:9'}
       >
 
         <View style={estilos.camera}>
@@ -176,7 +177,7 @@ export default function App() {
             accessibilityLabel='Fechar'
             accessibilityHint='Fecha a janela atual'>
             <Text>Fechar</Text>
-            <Ionicons name={`${iconePadrao}-close`} size={20} color='rgb(999,0,0)' />
+            <Ionicons name={`${iconePadrao}-close-circle`} size={20} color='rgb(999,0,0)' />
           </TouchableOpacity>
 
         </View>
